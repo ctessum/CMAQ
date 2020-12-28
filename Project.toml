@@ -3,6 +3,11 @@ uuid = "1d6620e0-af0f-4aad-99b8-8210b6260ab1"
 authors = ["US EPA and contributors"]
 version = "0.1.0"
 
+[deps]
+GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
+GitCommand = "49b5b516-ca3f-4003-a081-42bdcf55082d"
+Tar = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+
 [compat]
 julia = "1"
 
