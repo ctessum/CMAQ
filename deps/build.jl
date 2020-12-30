@@ -26,7 +26,10 @@ rm("LIBRARIES", force=true, recursive=true)
 
 # 2. Load module environment for a compiler (Intel|GCC|PGI) and mpi package corresponding to that compiler (e.g. openmpi).
 run(`which gfortran`)
+run(`gfortran --version`)
+gfortranversion = VersionNumber(chomp(read(`gfortran -dumpversion`, String)))
 run(`which gcc`)
+run(`gcc -dumpversion`)
 run(`which g++`)
 run(`which mpifort`)
 
@@ -62,7 +65,6 @@ Tar.extract(GZip.open(ncftar), joinpath(libdir, "ncfsrc"))
 cd(joinpath(libdir, "ncfsrc", "netcdf-fortran-4.4.5"))
 
 withenv("LD_LIBRARY_PATH"=>joinpath(ncbinpath, "lib"),
-        #"LDFLAGS"=>"-L"*joinpath(ncbinpath, "lib"),
         "CPPFLAGS"=>"-I"*joinpath(ncbinpath, "include"),
     ) do
     # 11. Run the configure command
@@ -98,7 +100,26 @@ cp("Makefile.nocpl", "Makefile", force=true)
 # 5. Set the BIN environment variable to include the loaded module name
 
 # 6. Copy an existing Makeinclude file to have this BIN name at the end
-cp("Makeinclude.Linux2_x86_64gfort", "Makeinclude.$ioapi_bin")
+if gfortranversion >= VersionNumber("10")
+    # macOS homebrew currently uses gfortran 10.
+    
+    # Add in the a compiler flag to ignore the implicit declaration of functions,
+    # which is illegal in macOS gcc compiler.
+    lines = readlines("Makeinclude.Linux2_x86_64gfort10")
+    open("Makeinclude.$ioapi_bin", "w") do w
+        for line in lines
+            if startswith(line, "MFLAGS")
+                line = replace(line, "=" => "= -Wno-implicit-function-declaration", count=1)
+                println(w, line)
+            else
+                println(w, line)
+            end
+        end
+    end
+
+else
+    cp("Makeinclude.Linux2_x86_64gfort", "Makeinclude.$ioapi_bin")
+end
 
 # 7. Create a BIN directory where the library and m3tools executables will be installed
 mkdir(ioapi_bin_path)

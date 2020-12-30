@@ -172,10 +172,10 @@ set make_options = "-j"                #> additional options for make command if
 #> This script was written for Linux hosts only. If
 #> the host system is not Linux, produce an error and stop
  set BLD_OS = `uname -s`       
- if ($BLD_OS != 'Linux') then
-    echo "   $BLD_OS -> wrong bldit script for host!"
-    exit 1
- endif
+ #if ($BLD_OS != 'Linux') then
+ #   echo "   $BLD_OS -> wrong bldit script for host!"
+ #   exit 1
+ #endif
 
 #> If the two-way, coupled WRF-CMAQ model is being built,
 #> then just generate the Makefile. Don't compile.

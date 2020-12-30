@@ -11,23 +11,30 @@ jobs:
       matrix:
         version:
           - '1.5'
-          - 'nightly'
+#          - 'nightly'
         os:
           - ubuntu-latest
-#          - macOS-latest
+          - macOS-latest
 #          - windows-latest
         arch:
           - x64
     steps:
       - name: Install Dependencies
         run: |
-          sudo apt-get install build-essential curl libcurl4-openssl-dev csh m4
-          wget http://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2.tar.gz
-          tar -xzf mpich-3.3.2.tar.gz 
-          cd mpich-3.3.2
-          ./configure
-          make
-          sudo make install
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get install build-essential curl libcurl4-openssl-dev csh m4
+            wget http://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2.tar.gz
+            tar -xzf mpich-3.3.2.tar.gz
+            cd mpich-3.3.2
+            ./configure
+            make
+            sudo make install
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install gfortran tcsh mpich
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            echo "Windows"
+          fi
+        shell: bash
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
