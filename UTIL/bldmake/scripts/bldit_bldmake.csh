@@ -39,14 +39,14 @@
   
      #> Compile BLDMAKE
      cd $BLDDIR
-     $myFC *.o -o $BLDEXE
+     $myFC $myLINK_FLAG *.o -o $BLDEXE
      if( ! -e $BLDEXE ) then
          echo " "; echo " ***ERROR*** BLDMAKE Compile failed"; echo " "
          exit 1
      endif
      chmod 755 $BLDEXE
      echo " "; echo " Finish building $BLDEXE "
-  
+
   endif
  
  exit

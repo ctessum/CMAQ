@@ -148,9 +148,15 @@
     
         #> Compiler Aliases and Flags
         #> set the compiler flag -fopt-info-missed to generate a missed optimization report in the bldit logfile
+        if ( $?CC ) then
+         setenv myCC $CC
+        else
+         setenv CC gcc
+         setenv myCC gcc
+        endif
+
         setenv myFC mpifort
-        setenv myCC gcc
-        setenv myFSTD "-O3 -funroll-loops -finit-character=32 -Wtabs -Wsurprising -march=native -ftree-vectorize  -ftree-loop-if-convert -finline-limit=512 -std=legacy" # -std=legacy or -fallow-argument-mismatch is required for GCC 10
+        setenv myFSTD "-O3 -funroll-loops -finit-character=32 -Wtabs -Wsurprising -march=native -ftree-vectorize  -ftree-loop-if-convert -finline-limit=512"
         setenv myDBG  "-Wall -O0 -g -fcheck=all -ffpe-trap=invalid,zero,overflow -fbacktrace"
         setenv myFFLAGS "-ffixed-form -ffixed-line-length-132 -funroll-loops -finit-character=32"
         setenv myFRFLAGS "-ffree-form -ffree-line-length-none -funroll-loops -finit-character=32"
@@ -160,6 +166,21 @@
         #setenv mpi_lib "-lmpi_mpifh"   #> -lmpich for mvapich or -lmpi for openmpi
         setenv mpi_lib "-lmpich"   #> -lmpich for mvapich or -lmpi for openmpi
     
+        if ( $?FC ) then
+            setenv myFFLAGS "-fc=$FC $myFFLAGS" # Add flag for fortran compiler alias
+            setenv myFRFLAGS "-fc=$FC $myFRFLAGS"
+            setenv myLINK_FLAG "-fc=$FC $myLINK_FLAG"
+            if ( "$FC" == "gfortran-10" ) then
+               setenv myFSTD "$myFSTD -fallow-argument-mismatch" # -std=legacy or -fallow-argument-mismatch is required for GCC 10
+            endif
+        else
+            setenv FC gfortran  
+        endif
+
+        if ( $?RPATH ) then
+            setenv DYLD_LIBRARY_PATH $RPATH # Workaround for problem with julia environment variable on OSx
+        endif
+
         breaksw
 
     default:
