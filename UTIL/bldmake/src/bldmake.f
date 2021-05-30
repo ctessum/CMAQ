@@ -215,9 +215,9 @@
         Call PWD( reporoot, status )
         If ( status.ne.0 ) reporoot = './'
       End If
-      If ( debug .or. verbose ) Then
-        Write( *,'(''REPOROOT set to:'',a,/)') Trim( reporoot )
-      End If
+      ! If ( debug .or. verbose ) Then
+        ! Write( *,'(''REPOROOT set to:'',a,/)') Trim( reporoot )
+      ! End If
 
 ! Get system date and time
       Call date_and_time( cdate, ctime, czone, dateValues )
