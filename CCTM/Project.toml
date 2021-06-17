@@ -1,0 +1,5 @@
+[deps]
+IOAPI_jll = "21284ac2-4ede-594e-ad4f-4494079aca48"
+MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
+NetCDFF_jll = "78e728a9-57fe-5d11-897c-5014b89e5f84"
+NetCDF_jll = "7243133f-43d8-5620-bbf4-c2c921802cf3"
