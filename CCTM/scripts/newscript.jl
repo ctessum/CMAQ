@@ -11,6 +11,8 @@ end
 scriptdir = joinpath(basedir, "CCTM", "scripts")
 cd(scriptdir)
 
+mpitemp = joinpath("lib", "mpidir")
+
 withenv( 
     "IOAPI_LIB_DIR"=>joinpath(IOAPI_jll.artifact_dir, "lib"),
     "IOAPI_INCL_DIR"=>joinpath(IOAPI_jll.artifact_dir, "include"),
@@ -25,7 +27,7 @@ withenv(
     "RPATH"=>MPICH_jll.LIBPATH*":"*IOAPI_jll.LIBPATH[],
     ) do
 
-    run(`./run_cctm_Bench_2016_12SE1.csh`)
+    run(`./run_column_Bench_2016_12SE1.csh`)
 
 
 end
