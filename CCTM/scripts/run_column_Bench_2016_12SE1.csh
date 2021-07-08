@@ -74,7 +74,7 @@ endif
 
 #> Source the config.cmaq file to set the build environment
  cd ../..
- source ./config_cmaq.csh $compiler $compilerVrsn
+ source ./config_cmaq.csh
  cd CCTM/scripts
 
 #> Set General Parameters for Configuring the Simulation
@@ -139,9 +139,6 @@ setenv EXECUTION_ID "CMAQ_CCTM${VRSN}_`id -u -n`_`date -u +%Y%m%d_%H%M%S_%N`"   
 echo ""
 echo "---CMAQ EXECUTION ID: $EXECUTION_ID ---"
 
-echo xxxxxxxxxxxxxxxx1
-
-
 #> Keep or Delete Existing Output Files
 set CLOBBER_DATA = TRUE 
 
@@ -160,15 +157,11 @@ setenv GRID_NAME SE53_CELL           #> check GRIDDESC file for GRID_NAME option
 #setenv GRIDDESC $INPDIR/GRIDDESC    #> grid description file
 setenv GRIDDESC $INPDIR/GRIDDESC_2016_12SE1   #> grid description file
 
-echo $GRIDDESC This is griddesc
-
 #> Retrieve the number of columns, rows, and layers in this simulation
 set NZ = 35
 set NX = `grep -A 1 ${GRID_NAME} ${GRIDDESC} | tail -1 | sed 's/  */ /g' | cut -d' ' -f6`
 set NY = `grep -A 1 ${GRID_NAME} ${GRIDDESC} | tail -1 | sed 's/  */ /g' | cut -d' ' -f7`
 set NCELLS = `echo "${NX} * ${NY} * ${NZ}" | bc -l`
-
-echo xxxxxxxxx
 
 #> Output Species and Layer Options
    #> CONC file species; comment or set to "ALL" to write all species to CONC
@@ -216,8 +209,6 @@ setenv CTM_BIOGEMIS Y        #> calculate in-line biogenic emissions [ default: 
 #> Vertical Extraction Options
 setenv VERTEXT N
 setenv VERTEXT_COORD_PATH ${WORKDIR}/lonlat.csv
-
-echo xxxxxxxxxxxxx1.2
 
 #> I/O Controls
 setenv IOAPI_LOG_WRITE F     #> turn on excess WRITE3 logging [ options: T | F ]
@@ -272,8 +263,6 @@ setenv MP_ADAPTER_USE shared #> share the MP adapter with other jobs
 setenv MP_CPU_USE multiple   #> share the node with multiple users/jobs
 setenv MP_CSS_INTERRUPT yes  #> specify whether arriving packets generate interrupts [ default: no ]
 
-echo xxxxxxxxxxxxx1.3
-
 # =====================================================================
 #> Input Directories and Filenames
 # =====================================================================
@@ -295,8 +284,6 @@ set SZpath    = $INPDIR/land                        #> surf zone file for in-lin
 # =====================================================================
 set rtarray = ""
 
-echo xxxxxxx1.4
-
 set uname = `uname`
 if ( "$uname" == "Darwin" ) then
     set DATE_COMMAND = "date -j -f %Y-%m-%d"
@@ -310,8 +297,6 @@ set TODAYJ = `$DATE_COMMAND "${START_DATE}" +%Y%j` #> Convert YYYY-MM-DD to YYYY
 set START_DAY = ${TODAYJ} 
 set STOP_DAY = `$DATE_COMMAND "${END_DATE}" +%Y%j` #> Convert YYYY-MM-DD to YYYYJJJ
 set NDAYS = 0
-
-echo xxxxxxx1.5 $TODAYG
 
 while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   
@@ -330,7 +315,6 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
     set YESTERDAY = `date -ud "${TODAYG}-1days" +%Y%m%d` #> Convert YYYY-MM-DD to YYYYJJJ
   endif
 
-  echo xxxxxxxxxxxxxxxx2
 
 # =====================================================================
 #> Set Output String and Propagate Model Configuration Documentation
@@ -771,8 +755,6 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   #> Harvest Timing Output so that it may be reported below
   set rtarray = "${rtarray} `tail -3 buff_${EXECUTION_ID}.txt | grep -Eo '[+-]?[0-9]+([.][0-9]+)?' | head -1` "
   rm -rf buff_${EXECUTION_ID}.txt
-
-echo xxxxxxxxxxxxxxxx
 
 
   #> Abort script if abnormal termination

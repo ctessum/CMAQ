@@ -29,7 +29,7 @@ echo 'Start Model Run At ' `date`
 
 #> Source the config.cmaq file to set the build environment
  cd ../..
- source ./config_cmaq.csh $compiler $compilerVrsn
+ source ./config_cmaq.csh # $compiler $compilerVrsn
  cd CCTM/scripts
 
 #> Set General Parameters for Configuring the Simulation
@@ -238,8 +238,12 @@ set rtarray = ""
 
 echo xxx3
 
-set DATE_COMMAND = "date -j -f %Y-%m-%d"
-# DATE_COMMAND = "date -ud"
+set uname = `uname`
+if ( "$uname" == "Darwin" ) then
+    set DATE_COMMAND = "date -j -f %Y-%m-%d"
+else
+    set DATE_COMMAND = "date -ud"
+endif
 
 set TODAYG = ${START_DATE}
 set TODAYJ = `$DATE_COMMAND "${START_DATE}" +%Y%j` #> Convert YYYY-MM-DD to YYYYJJJ
@@ -260,7 +264,11 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   set YYYYJJJ = $TODAYJ
 
   #> Calculate Yesterday's Date
-  set YESTERDAY = `$DATE_COMMAND -v -1d "${TODAYG}" +%Y%m%d` #> Convert YYYY-MM-DD to YYYYJJJ
+  if ( "$uname" == "Darwin" ) then
+    set YESTERDAY = `$DATE_COMMAND -v -1d "${TODAYG}" +%Y%m%d` #> Convert YYYY-MM-DD to YYYYJJJ
+  else
+    set YESTERDAY = `date -ud "${TODAYG}-1days" +%Y%m%d` #> Convert YYYY-MM-DD to YYYYJJJ
+  endif
 
   echo xxx5
 
@@ -698,7 +706,7 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   #> Executable call for multi PE, configure for your system 
   # set MPI = /usr/local/intel/impi/3.2.2.006/bin64
   # set MPIRUN = $MPI/mpirun
-  ( /usr/bin/time -p mpirun -np $NPROCS $BLD/$EXEC ) |& tee buff_${EXECUTION_ID}.txt
+  ( time mpirun -np $NPROCS $BLD/$EXEC ) |& tee buff_${EXECUTION_ID}.txt
   
   #> Harvest Timing Output so that it may be reported below
   set rtarray = "${rtarray} `tail -3 buff_${EXECUTION_ID}.txt | grep -Eo '[+-]?[0-9]+([.][0-9]+)?' | head -1` "

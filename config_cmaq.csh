@@ -240,7 +240,6 @@
  endif
 
 #> Check for netcdf and I/O API libs/includes, error if they don't exist
-echo "LLJKSLDKFJDSLJ" $NETCDF_LIB_DIR/libnetcdf.a
  if ( ! -e $NETCDF_LIB_DIR/libnetcdf.a && ! -e $NETCDF_LIB_DIR/libnetcdf.so ) then 
     echo "ERROR: $NETCDF_LIB_DIR/libnetcdf.* does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
     exit
