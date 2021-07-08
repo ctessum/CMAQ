@@ -4,13 +4,10 @@ authors = ["US EPA and contributors"]
 version = "0.1.0"
 
 [deps]
-GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
-GitCommand = "49b5b516-ca3f-4003-a081-42bdcf55082d"
 IOAPI_jll = "21284ac2-4ede-594e-ad4f-4494079aca48"
 MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 NetCDFF_jll = "78e728a9-57fe-5d11-897c-5014b89e5f84"
 NetCDF_jll = "7243133f-43d8-5620-bbf4-c2c921802cf3"
-Tar = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 
 [compat]
 julia = "1"

@@ -173,6 +173,9 @@
             if ( "$FC" == "gfortran-10" ) then
                setenv myFSTD "$myFSTD -fallow-argument-mismatch" # -std=legacy or -fallow-argument-mismatch is required for GCC 10
             endif
+            if ( "$FC" == "gfortran-7" ) then
+               setenv myFSTD "$myFSTD -std=legacy" # Silence error caused by commas before IO list in WRITE statements.
+            endif
         else
             setenv FC gfortran  
         endif
@@ -237,20 +240,21 @@
  endif
 
 #> Check for netcdf and I/O API libs/includes, error if they don't exist
- if ( ! -e $NETCDF_DIR/lib/libnetcdf.a ) then 
-    echo "ERROR: $NETCDF_DIR/lib/libnetcdf.a does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
+echo "LLJKSLDKFJDSLJ" $NETCDF_LIB_DIR/libnetcdf.a
+ if ( ! -e $NETCDF_LIB_DIR/libnetcdf.a && ! -e $NETCDF_LIB_DIR/libnetcdf.so ) then 
+    echo "ERROR: $NETCDF_LIB_DIR/libnetcdf.* does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
     exit
  endif
-if ( ! -e $NETCDFF_DIR/lib/libnetcdff.a ) then
-    echo "ERROR: $NETCDFF_DIR/lib/libnetcdff.a does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
+if ( ! -e $NETCDFF_LIB_DIR/libnetcdff.a && ! -e $NETCDFF_LIB_DIR/libnetcdff.so ) then
+    echo "ERROR: $NETCDFF_LIB_DIR/libnetcdff.* does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
     exit
  endif
- if ( ! -e $IOAPI_DIR/lib/libioapi.a ) then 
-    echo "ERROR: $IOAPI_DIR/lib/libioapi.a does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
+ if ( ! -e $IOAPI_LIB_DIR/libioapi.a && ! -e $IOAPI_LIB_DIR/libioapi.so ) then 
+    echo "ERROR: $IOAPI_LIB_DIR/libioapi.* does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
     exit
  endif
- if ( ! -e $IOAPI_DIR/lib/m3utilio.mod ) then 
-    echo "ERROR: $IOAPI_MOD_DIR/m3utilio.mod does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
+ if ( ! -e $IOAPI_INCL_DIR/m3utilio.mod ) then 
+    echo "ERROR: $IOAPI_INCL_DIR/m3utilio.mod does not exist in your CMAQ_LIB directory!!! Check your installation before proceeding with CMAQ build."
     exit
  endif
 
