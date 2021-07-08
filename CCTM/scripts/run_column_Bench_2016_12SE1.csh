@@ -8,6 +8,35 @@
 #             http://www.cmascenter.org  (CMAS Website)
 # ===================================================================  
 
+#> Simple Linux Utility for Resource Management System 
+#> (SLURM) - The following specifications are recommended 
+#> for executing the runscript on the cluster at the 
+#> National Computing Center used primarily by EPA.
+#SBATCH -t 10:00:00
+#SBATCH -n 1
+#SBATCH -J CMAQ_Bench_Cell
+#SBATCH -p ord
+#SBATCH --gid=mod3dev
+#SBATCH -A mod3dev
+#SBATCH -o /work/MOD3DEV/hwo/cmaq_testbed/release_v5.3.2_Oct-27-2020_PARALLEL/CCTM/scripts/bench_cell_%j.txt
+
+#> The following commands output information from the SLURM
+#> scheduler to the log files for traceability.
+   if ( $?SLURM_JOB_ID ) then
+      echo Job ID is $SLURM_JOB_ID
+      echo "Running on nodes `printenv SLURM_JOB_NODELIST`"
+      echo Host is $SLURM_SUBMIT_HOST
+      #> Switch to the working directory. By default,
+      #>   SLURM launches processes from your home directory.
+      echo Working directory is $SLURM_SUBMIT_DIR
+      cd $SLURM_SUBMIT_DIR
+   endif
+
+#> Configure the system environment and set up the module 
+#> capability
+   limit stacksize unlimited
+#
+
 # ===================================================================
 #> Runtime Environment Options
 # ===================================================================
@@ -20,23 +49,39 @@ echo 'Start Model Run At ' `date`
 
 #> Choose compiler and set up CMAQ environment with correct 
 #> libraries using config.cmaq. Options: intel | gcc | pgi
- if ( ! $?compiler ) then
+# setenv compiler intel
+setenv compiler gcc
+#setenv compiler pgi
+
+# Choose numerical solver for gas-aerosol chemistry
+#> Options are Rosenbrock (ros3), Sparse-Matrix Gear (smvgear),
+#> Euler Backward Iterative (ebi)
+#setenv solver ros3
+#setenv solver smvgear
+ setenv solver ebi
+
+  if ( ! $?compiler ) then
    setenv compiler gcc
  endif
  if ( ! $?compilerVrsn ) then
    setenv compilerVrsn 9.1
  endif
 
+# setenv DYLD_LIBRARY_PATH
+if ( $?RPATH ) then
+   setenv DYLD_LIBRARY_PATH $RPATH # Workaround for problem with julia environment variable on OSx
+endif
+
 #> Source the config.cmaq file to set the build environment
  cd ../..
- source ./config_cmaq.csh # $compiler $compilerVrsn
+ source ./config_cmaq.csh
  cd CCTM/scripts
 
 #> Set General Parameters for Configuring the Simulation
  set VRSN      = v532              #> Code Version
  set PROC      = mpi               #> serial or mpi
  set MECH      = cb6r3_ae7_aq      #> Mechanism ID
- set APPL      = Bench_2016_12SE1  #> Application Name (e.g. Gridname)
+ set APPL      = 12SE1_COLUMN_2016_${solver}  #> Application Name (e.g. Gridname)
                                                        
 #> Define RUNID as any combination of parameters above or others. By default,
 #> this information will be collected into this one string, $RUNID, for easy
@@ -51,15 +96,10 @@ echo 'Start Model Run At ' `date`
 #> Output Each line of Runscript to Log File
  if ( $CTM_DIAG_LVL != 0 ) set echo 
 
-
-# setenv DYLD_LIBRARY_PATH
-if ( $?RPATH ) then
-   setenv DYLD_LIBRARY_PATH $RPATH # Workaround for problem with julia environment variable on OSx
-endif
 #> Set Working, Input, and Output Directories
  setenv WORKDIR ${CMAQ_HOME}/CCTM/scripts          #> Working Directory. Where the runscript is.
  setenv OUTDIR  ${CMAQ_DATA}/output_CCTM_${RUNID}  #> Output Directory
- setenv INPDIR  ${CMAQ_DATA}/CMAQv5.3.2_Benchmark_2Day_Input_column            #> Input Directory
+ setenv INPDIR  ${CMAQ_DATA}/CMAQv5.3.2_Benchmark_2Day_Input_column  #Input Directory
  setenv LOGDIR  ${OUTDIR}/LOGS     #> Log Directory Location
  setenv NMLpath ${BLD}             #> Location of Namelists. Common places are: 
                                    #>   ${WORKDIR} | ${CCTM_SRC}/MECHS/${MECH} | ${BLD}
@@ -89,7 +129,7 @@ set TSTEP      = 010000            #> output time step interval (HHMMSS)
 if ( $PROC == serial ) then
    setenv NPCOL_NPROW "1 1"; set NPROCS   = 1 # single processor setting
 else
-   @ NPCOL  =  2; @ NPROW =  1
+   @ NPCOL  =  1; @ NPROW =  1
    @ NPROCS = $NPCOL * $NPROW
    setenv NPCOL_NPROW "$NPCOL $NPROW"; 
 endif
@@ -113,16 +153,15 @@ setenv PRINT_PROC_TIME Y           #> Print timing for all science subprocesses 
 setenv STDOUT T                    #> Override I/O-API trying to write information to both the processor 
                                    #>   logs and STDOUT [ options: T | F ]
 
-setenv GRID_NAME 2016_12SE1         #> check GRIDDESC file for GRID_NAME options
-setenv GRIDDESC $INPDIR/GRIDDESC    #> grid description file
+setenv GRID_NAME SE53_CELL           #> check GRIDDESC file for GRID_NAME options
+#setenv GRIDDESC $INPDIR/GRIDDESC    #> grid description file
+setenv GRIDDESC $INPDIR/GRIDDESC_2016_12SE1   #> grid description file
 
 #> Retrieve the number of columns, rows, and layers in this simulation
 set NZ = 35
 set NX = `grep -A 1 ${GRID_NAME} ${GRIDDESC} | tail -1 | sed 's/  */ /g' | cut -d' ' -f6`
 set NY = `grep -A 1 ${GRID_NAME} ${GRIDDESC} | tail -1 | sed 's/  */ /g' | cut -d' ' -f7`
 set NCELLS = `echo "${NX} * ${NY} * ${NZ}" | bc -l`
-
-echo xxx1
 
 #> Output Species and Layer Options
    #> CONC file species; comment or set to "ALL" to write all species to CONC
@@ -213,7 +252,16 @@ setenv B3GTS_DIAG N          #> BEIS mass emissions diagnostic file [ default: N
 setenv CTM_WVEL Y            #> save derived vertical velocity component to conc 
                              #>    file [ default: Y ]
 
-echo xxx2
+#> MPI Optimization Flags
+setenv MPI_SM_POOL 16000     #> increase shared memory pool in case many MPI_SEND headers
+setenv MP_EAGER_LIMIT 65536  #> set MPI message passing buffer size to max
+setenv MP_SINGLE_THREAD yes  #> optimize for single threaded applications [ default: no ]
+setenv MP_STDOUTMODE ordered #> order output by the processor ID
+setenv MP_LABELIO yes        #> label output by processor ID [ default: no ]
+setenv MP_SHARED_MEMORY yes  #> force use of shared memory for tasks on same node [ default: no ]
+setenv MP_ADAPTER_USE shared #> share the MP adapter with other jobs
+setenv MP_CPU_USE multiple   #> share the node with multiple users/jobs
+setenv MP_CSS_INTERRUPT yes  #> specify whether arriving packets generate interrupts [ default: no ]
 
 # =====================================================================
 #> Input Directories and Filenames
@@ -236,8 +284,6 @@ set SZpath    = $INPDIR/land                        #> surf zone file for in-lin
 # =====================================================================
 set rtarray = ""
 
-echo xxx3
-
 set uname = `uname`
 if ( "$uname" == "Darwin" ) then
     set DATE_COMMAND = "date -j -f %Y-%m-%d"
@@ -245,13 +291,12 @@ else
     set DATE_COMMAND = "date -ud"
 endif
 
+
 set TODAYG = ${START_DATE}
 set TODAYJ = `$DATE_COMMAND "${START_DATE}" +%Y%j` #> Convert YYYY-MM-DD to YYYYJJJ
 set START_DAY = ${TODAYJ} 
 set STOP_DAY = `$DATE_COMMAND "${END_DATE}" +%Y%j` #> Convert YYYY-MM-DD to YYYYJJJ
 set NDAYS = 0
-
-echo xxx4
 
 while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   
@@ -270,7 +315,6 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
     set YESTERDAY = `date -ud "${TODAYG}-1days" +%Y%m%d` #> Convert YYYY-MM-DD to YYYYJJJ
   endif
 
-  echo xxx5
 
 # =====================================================================
 #> Set Output String and Propagate Model Configuration Documentation
@@ -707,12 +751,11 @@ while ($TODAYJ <= $STOP_DAY )  #>Compare dates in terms of YYYYJJJ
   # set MPI = /usr/local/intel/impi/3.2.2.006/bin64
   # set MPIRUN = $MPI/mpirun
   ( time mpirun -np $NPROCS $BLD/$EXEC ) |& tee buff_${EXECUTION_ID}.txt
-  
+
   #> Harvest Timing Output so that it may be reported below
   set rtarray = "${rtarray} `tail -3 buff_${EXECUTION_ID}.txt | grep -Eo '[+-]?[0-9]+([.][0-9]+)?' | head -1` "
   rm -rf buff_${EXECUTION_ID}.txt
 
-echo xxxxxxxxxxxxx6
 
   #> Abort script if abnormal termination
   if ( ! -e $OUTDIR/CCTM_CGRID_${CTM_APPL}.nc ) then
